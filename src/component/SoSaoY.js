@@ -375,12 +375,12 @@ class SoSaoY extends React.Component {
 				ref={ (client) => { this.clientRef = client }} />}
 			<div style = {{flexDirection: 'row', display: 'flex', justifyContent:'space-between'}}>
 				<div style={{marginTop: 20}}>
-					<button  style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold', borderTopLeftRadius: 5, borderBottomLeftRadius:5}} onClick = {this.toCongChung}>Công chứng</button>
-					<button style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold'}} onClick = {this.toSoChungThuc}>Chứng thực</button>
+					<button  style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold', borderTopLeftRadius: 5, borderBottomLeftRadius:5, backgroundColor:'#d5f7de'}} onClick = {this.toCongChung}>Công chứng</button>
+					<button style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold', backgroundColor:'#d5f7de'}} onClick = {this.toSoChungThuc}>Chứng thực</button>
 					<button style={{width: 150, height: 40, backgroundColor:'rgba(2, 184, 117, 1)', fontSize: 14, fontWeight: 'bold', borderTopRightRadius: 5, borderBottomRightRadius:5}} >Sao y</button>
 				</div>
 				<div style ={{}}>
-					<span style= {{fontSize: 40, fontWeight:'500', marginRight: 30}}>{branch?.name}</span>
+					<span style= {{fontSize: 40, fontWeight:'500', marginRight: 100}}>{branch?.name}</span>
 					{branch?.id == 1 && <img width={100} height={100} src={require('../assets/hp.jpg')}></img>}
 					{branch?.id == 2 && <img width={100} height={100} src={require('../assets/vuhai.jpg')}></img>}
 					{branch?.id == 3 && <img width={100} height={100} src={require('../assets/tplts.jpg')}></img>}

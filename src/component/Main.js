@@ -391,8 +391,8 @@ class Main extends React.Component {
 			<div style = {{flexDirection: 'row', display: 'flex', justifyContent:'space-between'}}>
 				<div style={{marginTop: 20}}>
 					<button  style={{width: 150, height: 40, backgroundColor:'rgba(2, 184, 117, 1)', fontSize: 14, fontWeight: 'bold', borderTopLeftRadius: 5, borderBottomLeftRadius:5}}>Công chứng</button>
-					<button style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold'}} onClick = {this.toSoChungThuc}>Chứng thực</button>
-					<button style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold', borderTopRightRadius: 5, borderBottomRightRadius:5}} onClick = {this.toSaoY}>Sao y</button>
+					<button style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold', backgroundColor:'#d5f7de'}} onClick = {this.toSoChungThuc}>Chứng thực</button>
+					<button style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold', borderTopRightRadius: 5, borderBottomRightRadius:5, backgroundColor:'#d5f7de'}} onClick = {this.toSaoY}>Sao y</button>
 				</div>
 				<div style ={{}}>
 					<span style= {{fontSize: 40, fontWeight:'500', marginRight: 100}}>{branch?.name}</span>
