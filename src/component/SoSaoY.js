@@ -6,7 +6,7 @@ import Popup from './Popup'
 import SockJsClient from 'react-stomp';
 import Pagination from "react-js-pagination";
 import constants from '../constants'
-import { FiChevronDown, FiChevronUp, FiCheck, FiX } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiCheck, FiX, FiPlusCircle } from "react-icons/fi";
 require("bootstrap-css-only/css/bootstrap.css");
 
 let isCreator = false
@@ -347,7 +347,7 @@ class SoSaoY extends React.Component {
 		this.setState({showMenu: !this.state.showMenu})
 	}
  	render() {
-		 const { showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding, page } = this.state
+		 const {products, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding, page } = this.state
 		 const url = constants.baseUrl + 'websocket'
 		 console.log('Render- branch:', branch);
 		 
@@ -375,9 +375,9 @@ class SoSaoY extends React.Component {
 				ref={ (client) => { this.clientRef = client }} />}
 			<div style = {{flexDirection: 'row', display: 'flex', justifyContent:'space-between'}}>
 				<div style={{marginTop: 20}}>
-					<button  style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold'}} onClick = {this.toCongChung}>Công chứng</button>
+					<button  style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold', borderTopLeftRadius: 5, borderBottomLeftRadius:5}} onClick = {this.toCongChung}>Công chứng</button>
 					<button style={{width: 150, height: 40, fontSize: 14, fontWeight: 'bold'}} onClick = {this.toSoChungThuc}>Chứng thực</button>
-					<button style={{width: 150, height: 40, backgroundColor:'#28a745', fontSize: 14, fontWeight: 'bold'}} >Sao y</button>
+					<button style={{width: 150, height: 40, backgroundColor:'rgba(2, 184, 117, 1)', fontSize: 14, fontWeight: 'bold', borderTopRightRadius: 5, borderBottomRightRadius:5}} >Sao y</button>
 				</div>
 				<div style ={{}}>
 					<span style= {{fontSize: 40, fontWeight:'500', marginRight: 30}}>{branch?.name}</span>
@@ -392,13 +392,13 @@ class SoSaoY extends React.Component {
 					{showMenu && <span onClick={this.changeShowMenu}><FiChevronUp size ={20}/></span>}
 					{showMenu &&<div style ={{}}>
 						<div style={{flexDirection: 'column', display: 'flex', alignItems: 'flex-end', borderRadius: 5, borderWidth: 1, borderColor:'black'}}>
-							<button style= {{width: 100, marginTop: 10, marginBottom: 5}} className="btn btn-success" onClick ={this.onChangePass}><span style={{fontSize: 14, fontWeight: '500'}}>Đổi mật khẩu</span></button>
-							<button style= {{width: 100}} className="btn btn-success" onClick ={this.onLogout}><span style={{fontSize: 14, fontWeight: '500'}}>Đăng xuất</span></button>
+							<button style= {{width: 100, marginTop: 10, marginBottom: 5, backgroundColor:'rgba(2, 184, 117, 1)'}} className="btn btn-success" onClick ={this.onChangePass}><span style={{fontSize: 14, fontWeight: '500'}}>Đổi mật khẩu</span></button>
+							<button style= {{width: 100, backgroundColor:'rgba(2, 184, 117, 1)'}} className="btn btn-success" onClick ={this.onLogout}><span style={{fontSize: 14, fontWeight: '500'}}>Đăng xuất</span></button>
 						</div>
 					</div>}
 				</span>
 			</div>
-			<ProductTable 
+			{products.length > 0 ? <ProductTable 
 				onProductTableUpdate={this.handleProductTable.bind(this)} 
 				onSave = {this.onSave}
 				onDelete = {this.onDelete}
@@ -413,7 +413,10 @@ class SoSaoY extends React.Component {
 				changeJobType = {this.changeJobType}
 				userInfo = {userInfo}
 				changeJobTypeInput = {this.changeJobTypeInput}
-			/>
+			/>:
+			<div style={{marginTop: 200, marginBottom: 300, width: '100%', flexDirection: 'row', display:'flex', justifyContent:'center'}}>
+				<p style={{fontSize: 18}}>No data</p>
+			</div>}
 			<Pagination
 				activePage={page}
 				itemsCountPerPage={10}
@@ -464,7 +467,9 @@ class SoSaoY extends React.Component {
 		<div>
   
 		<div style={{float: 'left', marginTop: 15}}>
-			<button type="button" onClick={this.props.onRowAdd} className="btn btn-success" style={{marginRight: 20, marginBottom: 10, fontSize: 18}}>Add</button>
+			<button type="button" onClick={this.props.onRowAdd} className="btn btn-success" style={{marginRight: 20, marginBottom: 10, backgroundColor:'rgba(2, 184, 117, 1)'}}>
+				<FiPlusCircle size={25} color='white'/>
+			</button>
 		</div>
 		
 		  <table className="table table-bordered">
@@ -518,7 +523,7 @@ class SoSaoY extends React.Component {
 		  }}/>
 		  <EditableCell onProductTableUpdate={this.props.onProductTableUpdate} cellData={{
 				type: "quantity",
-				value: product.preparedBy,
+				value: product.quantity,
 				id: this.props.index + '_quantity',
 				index: this.props.index,
 				indexEditting: indexEditting
@@ -547,9 +552,9 @@ class SoSaoY extends React.Component {
 				index: this.props.index,
 				indexEditting: indexEditting
 		  }}/>
-			{indexEditting != index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? <button style={{width: 80, height: 30, backgroundColor: indexEditting != index ?'#abf5bc': '#28a745', borderRadius: 10}} onClick= { e => this.props.onSave(index)}>Sửa</button> : '-'}</td>}
-			{indexEditting == index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? (<div style={{flexDirection: 'row', display:'flex', justifyContent: 'center'}}><span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'#00e600', marginRight:10, cursor: 'pointer'}}  onClick= { e => this.props.onSave(index)}><FiCheck size={30} color="#ffffff"/></span> <span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'red', cursor: 'pointer'}}  onClick= { e => this.props.onCancelEdit(e, index)}><FiX size={30} color="#ffffff" /></span> </div>): '-'}</td>}
-			<td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN'))  ? <button style={{width: 80, height: 30, backgroundColor: '#ed5e3e', borderRadius: 10}} onClick= { e => this.props.onDelete(e, index)}>Xoá</button>: '-'}</td>
+			{indexEditting != index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? <button style={{width: 80, height: 30, backgroundColor: 'rgba(2, 184, 117, 1)', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onSave(index)}>Sửa</button> : '-'}</td>}
+			{indexEditting == index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? (<div style={{flexDirection: 'row', display:'flex', justifyContent: 'center'}}><span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'rgba(2, 184, 117, 1)', marginRight:10, cursor: 'pointer'}}  onClick= { e => this.props.onSave(index)}><FiCheck size={30} color="#ffffff"/></span> <span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'#ed5e3e', cursor: 'pointer'}}  onClick= { e => this.props.onCancelEdit(e, index)}><FiX size={30} color="#ffffff" /></span> </div>): '-'}</td>}
+			<td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN'))  ? <button style={{width: 80, height: 30, backgroundColor: '#ed5e3e', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onDelete(e, index)}>Xoá</button>: '-'}</td>
 		</tr>
 	  );
   
