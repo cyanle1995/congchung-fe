@@ -7,6 +7,8 @@ import SockJsClient from 'react-stomp';
 import Pagination from "react-js-pagination";
 import constants from '../constants'
 import { FiChevronDown, FiChevronUp, FiCheck, FiX, FiPlusCircle } from "react-icons/fi";
+import loading from '../assets/loader.gif'
+
 require("bootstrap-css-only/css/bootstrap.css");
 
 let isCreator = false
@@ -51,25 +53,23 @@ class SoChungThuc extends React.Component {
 		}
 		const url = '/attestation-books?branch-id=' + branchId + '&page='+page+'&size='+size
 		const url1 = 'recommendation?branch-id=' + branchId + '&key=JOB_TYPE'
+		this.setState({loadding: true})
 		try {
 			await setConfigAxios()
 			const response = await HttpClient.get(url);
 			const response1 = await HttpClient.get(url1);
-			console.log('Res:', response);
-		
 			this.setState({
 				products: response?.data?.content,
 				branchId,
 				branch: curBranch !== undefined ? curBranch : branch,
 				userInfo,
 				indexEditting: -1,
+				loadding: false,
 				page,
 				totalPages: response?.data?.totalPages,
 				totalElements: response?.data?.totalElements
 			})
 		} catch (error) {
-			console.log(error);
-			
 			if(error?.response?.status === 401){
 				await localStorage.clear()
 				this.setState({
@@ -78,7 +78,8 @@ class SoChungThuc extends React.Component {
 					popupContent:'Phiên đã hết hạn. Vui lòng đăng nhập lại!',
 					popupStatus : 'sessionExpire',
 					showCancelButton: false,
-					customizeOkButton: 'OK'
+					customizeOkButton: 'OK',
+					loadding: false,
 				})
 			} else {
 				this.setState({
@@ -87,7 +88,8 @@ class SoChungThuc extends React.Component {
 					popupContent: error?.response?.message,
 					popupStatus : 'error',
 					showCancelButton: false,
-					customizeOkButton: 'OK'
+					customizeOkButton: 'OK', 
+					loadding: false
 				})
 			}
 		}
@@ -163,31 +165,33 @@ class SoChungThuc extends React.Component {
 	onSave = async(index) => {
 		const {indexEditting, products, isAdding, isEditting, branchId, page, size } = this.state
 		if(isAdding) { // Trường hợp add
-			console.log('onSave-Add:', branchId);
 			const book = products[0]
 			const url = '/attestation-books?branch-id='+branchId
 			await setConfigAxios()
 			try {
 				isCreator = true
+				this.setState({loadding: true})
 				const response = await HttpClient.post(url, book);
+				this.setState({loadding: false})
 			} catch (error) {
-				
+				this.setState({loadding: false})
 			}
 		} else { // Trường hợp Edit
-			console.log('onSave-e');
 			if(index == indexEditting) { // Gọi api edit 
 				const product = products[index]
 				const url = '/attestation-books/' + product.id
 				isCreator = true
 				try {
+					this.setState({loadding: true})
 					await setConfigAxios()
 					const response = await HttpClient.put(url, product);
 				} catch (error) {
-					console.log(error);
+					this.setState({loadding: false})
 				}
 				this.setState({
 					isEditting: false,
 					indexEditting: -1,
+					loadding: false,
 					isShowPopup: false,
 				})
 			} else { // Mở chức năng sửa cho row được chọn 
@@ -200,7 +204,6 @@ class SoChungThuc extends React.Component {
 	}
 	onDelete = async(e, index)=> {
 		e.preventDefault();
-		console.log('Index = ', index);
 		this.setState({
 			indexDelete: index,
 			isShowPopup: true,
@@ -219,11 +222,7 @@ class SoChungThuc extends React.Component {
 		this.props.history.push('/saoybanchinh')
 	}
 	onMessage = async (msg) => {
-		console.log('msg:', msg);
 		let { isAdding, isEditting, products } = this.state
-		console.log('isAdding:', isAdding);
-		console.log('isEditting:', isEditting);
-		console.log('isCreator:', isCreator);
 		if(msg.type == 'ATTESTATION_BOOK' && msg.action == 'ADD') {
 			let {indexEditting} = this.state
 			if(isCreator){ // Người tạo bản ghi
@@ -271,11 +270,9 @@ class SoChungThuc extends React.Component {
 			const {indexDelete, products} = this.state
 			const url = '/attestation-books/' + products[indexDelete].id
 			try {
+				this.setState({loadding: true})
 				const response = await HttpClient.delete(url);
-				console.log('Delete response:', response);
-				// if(response.status === 200){
-				// 	await this.fetchData()
-				// }
+				this.setState({loadding: false})
 			} catch (error) {
 				await this.fetchData()
 			}
@@ -294,8 +291,6 @@ class SoChungThuc extends React.Component {
 		})
 	}
 	changeJobType = (index , value) => {
-		console.log(value);
-		
 		let {products} = this.state
 		products[index].jobType  = value.value
 		this.setState({...products})
@@ -319,24 +314,19 @@ class SoChungThuc extends React.Component {
 		this.props.history.push('/change-password')
 	}
 	handlePageChange = async (e) => {
-		console.log('handlePageChange:', e);
 		await this.fetchData(e)
 	}
 	changeShowMenu = () => {
 		this.setState({showMenu: !this.state.showMenu})
 	}
 	onChangeActive = (e, index) => {
-		console.log(e.target.checked);
-		console.log(index);
 		let {products} = this.state
 		products[index].paid = e.target.checked
 		this.setState({...products})
 	}
  	render() {
-		 const {products, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, showCancelButton, userInfo, isAdding, page } = this.state
+		 const {loadding, products, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, showCancelButton, userInfo, isAdding, page } = this.state
 		 const url = constants.baseUrl + 'websocket'
-		 console.log('Render- branch:', branch);
-		 
 	  return (
 		<div style={{marginTop: 20, marginLeft: 20}}>
 			{isShowPopup && <Popup
@@ -352,11 +342,9 @@ class SoChungThuc extends React.Component {
 			{branchId> 0 && <SockJsClient url= {url} topics={[`/ws/room/${branchId}`]}
 				onMessage={(msg) => this.onMessage(msg)}
 				onConnect = {()=>{
-					console.log('Socket onConnect');
 					
 				}}
 				onDisConnect = {()=>{
-					console.log('Socket onDisConnect');
 				}}
 				ref={ (client) => { this.clientRef = client }} />}
 			<div style = {{flexDirection: 'row', display: 'flex', justifyContent:'space-between'}}>
@@ -393,6 +381,7 @@ class SoChungThuc extends React.Component {
 				onRowAdd = {this.handleAddEvent.bind(this)} 
 				onRowDel = {this.handleRowDel.bind(this)} 
 				products = {this.state.products} 
+				loadding = {this.state.loadding} 
 				filterText = {this.state.filterText}
 				indexEditting = {indexEditting}
 				isAdding = {isAdding}
@@ -422,6 +411,7 @@ class SoChungThuc extends React.Component {
 	  var onChangeActive = this.props.onChangeActive;
 	  var onCancelEdit = this.props.onCancelEdit;
 	  var isAdding = this.props.isAdding;
+	  var loadding = this.props.loadding;
 	  var rowDel = this.props.onRowDel;
 		var userInfo = this.props.userInfo;
 		var changeJobType = this.props.changeJobType;
@@ -454,8 +444,12 @@ class SoChungThuc extends React.Component {
 				<FiPlusCircle size={25} color='white'/>
 			</button>
 		</div>
-		
-		  {this.props.products.length>0 ?<table className="table table-bordered">
+		{ loadding &&
+				<div className="loading">
+					<img  src={loading} alt="loading"/>
+				</div>
+			}
+		  <table className="table table-bordered">
 			<thead>
 			  <tr>
 				<th>Stt</th>
@@ -475,10 +469,7 @@ class SoChungThuc extends React.Component {
 			<tbody>
 			  {product}
 			</tbody>
-		  </table>:
-			<div style={{marginTop: 200, marginBottom: 300, width: '100%', flexDirection: 'row', display:'flex', justifyContent:'center'}}>
-				<p style={{fontSize: 18}}>No data</p>
-			</div>}
+		  </table>
 		</div>
 	  );
 	}

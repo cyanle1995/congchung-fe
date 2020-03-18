@@ -7,6 +7,7 @@ import SockJsClient from 'react-stomp';
 import Pagination from "react-js-pagination";
 import constants from '../constants'
 import { FiChevronDown, FiChevronUp, FiCheck, FiX, FiPlusCircle } from "react-icons/fi";
+import loading from '../assets/loader.gif'
 require("bootstrap-css-only/css/bootstrap.css");
 
 let isCreator = false
@@ -33,6 +34,7 @@ class Main extends React.Component {
 			showMenu: false,
 			totalPages: 1,
 			totalElements: 0,
+			loadding: false,
 		};
 	}
 	async componentDidMount(){
@@ -53,11 +55,10 @@ class Main extends React.Component {
 		const url = '/notary-books?branch-id=' + branchId + '&page='+page+'&size='+size
 		const url1 = 'recommendation?branch-id=' + branchId + '&key=JOB_TYPE'
 		try {
+			this.setState({loadding: true})
 			await setConfigAxios()
 			const response = await HttpClient.get(url);
 			const response1 = await HttpClient.get(url1);
-			console.log('Res:', response);
-			
 			let options = []
 			if(response1?.data?.length > 0){
 				response1.data.forEach(ele => {
@@ -75,13 +76,12 @@ class Main extends React.Component {
 				options: [...options],
 				userInfo,
 				page,
+				loadding: false,
 				indexEditting: -1,
 				totalPages: response?.data?.totalPages,
 				totalElements: response?.data?.totalElements
 			})
 		} catch (error) {
-			console.log(error);
-			
 			if(error?.response?.status === 401){
 				await localStorage.clear()
 				this.setState({
@@ -177,32 +177,34 @@ class Main extends React.Component {
 		// e.preventDefault()
 		const {indexEditting, products, isAdding, isEditting, branchId, page, size } = this.state
 		if(isAdding) { // Trường hợp add
-			console.log('onSave-Add:', branchId);
 			const book = products[0]
 			const url = '/notary-books?branch-id='+branchId
 			await setConfigAxios()
 			try {
+				this.setState({loadding: true})
 				isCreator = true
 				const response = await HttpClient.post(url, book);
+				this.setState({loadding: false})
 			} catch (error) {
 				
 			}
 		} else { // Trường hợp Edit
-			console.log('onSave-e');
 			if(index == indexEditting) { // Gọi api edit 
 				const product = products[index]
 				const url = '/notary-books/' + product.id
 				isCreator = true
 				try {
+					this.setState({loadding: true})
 					await setConfigAxios()
 					const response = await HttpClient.put(url, product);
 				} catch (error) {
-					console.log(error);
+					this.setState({loadding: false})
 				}
 				this.setState({
 					isEditting: false,
 					indexEditting: -1,
 					isShowPopup: false,
+					loadding: false,
 				})
 			} else { // Mở chức năng sửa cho row được chọn 
 				this.setState({
@@ -214,7 +216,6 @@ class Main extends React.Component {
 	}
 	onDelete = async(e, index)=> {
 		e.preventDefault();
-		console.log('Index = ', index);
 		this.setState({
 			indexDelete: index,
 			isShowPopup: true,
@@ -233,11 +234,7 @@ class Main extends React.Component {
 		this.props.history.push('/saoybanchinh')
 	}
 	onMessage = async (msg) => {
-		console.log('msg:', msg);
 		let { isAdding, isEditting, products, options } = this.state
-		console.log('isAdding:', isAdding);
-		console.log('isEditting:', isEditting);
-		console.log('isCreator:', isCreator);
 		if(msg.type == 'NOTARY_BOOK' && msg.action == 'ADD') {
 			let {indexEditting} = this.state
 			if(isCreator){ // Người tạo bản ghi
@@ -267,7 +264,6 @@ class Main extends React.Component {
 					label: msg.payload.jobType
 				})
 			}
-			console.log('Options:', options);
 			this.setState({
 				products,
 				indexEditting,
@@ -294,11 +290,9 @@ class Main extends React.Component {
 			const {indexDelete, products} = this.state
 			const url = '/notary-books/' + products[indexDelete].id
 			try {
+				this.setState({loadding: true})
 				const response = await HttpClient.delete(url);
-				console.log('Delete response:', response);
-				// if(response.status === 200){
-				// 	await this.fetchData()
-				// }
+				this.setState({loadding: false})
 			} catch (error) {
 				await this.fetchData()
 			}
@@ -317,21 +311,11 @@ class Main extends React.Component {
 		})
 	}
 	changeJobType = (index , value) => {
-		console.log('changeJobType');
-		console.log(value);
-		console.log(index);
-		
 		let {products} = this.state
 		products[index].jobType  = value.value
-		console.log('products:', products);
-		
 		this.setState({...products})
 	}
 	changeJobTypeInput = (index , value) => {
-		console.log('changeJobTypeInput');
-		console.log(index);
-		console.log(value);
-		
 		const {products} = this.state
 		if(value != '') {
 			products[index].jobType  = value
@@ -356,14 +340,12 @@ class Main extends React.Component {
 		await this.fetchData()
 	}
 	onChangeActive = (e, index) => {
-		console.log(e.target.checked);
-		console.log(index);
 		let {products} = this.state
 		products[index].paid = e.target.checked
 		this.setState({...products})
 	}
  	render() {
-		 const {products, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding, page } = this.state
+		 const {loadding, products, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding, page } = this.state
 		 const url = constants.baseUrl + 'websocket'
 		 
 	  return (
@@ -381,11 +363,8 @@ class Main extends React.Component {
 			{branchId> 0 && <SockJsClient url= {url} topics={[`/ws/room/${branchId}`]}
 				onMessage={(msg) => this.onMessage(msg)}
 				onConnect = {()=>{
-					console.log('Socket onConnect');
-					
 				}}
 				onDisConnect = {()=>{
-					console.log('Socket onDisConnect');
 				}}
 				ref={ (client) => { this.clientRef = client }} />}
 			<div style = {{flexDirection: 'row', display: 'flex', justifyContent:'space-between'}}>
@@ -422,6 +401,7 @@ class Main extends React.Component {
 				onRowAdd = {this.handleAddEvent.bind(this)} 
 				onRowDel = {this.handleRowDel.bind(this)} 
 				products = {products} 
+				loadding = {loadding}
 				filterText = {this.state.filterText}
 				indexEditting = {indexEditting}
 				options = {options}
@@ -454,6 +434,7 @@ class Main extends React.Component {
 	  var rowDel = this.props.onRowDel;
 	  var onChangeActive = this.props.onChangeActive;
 		var options = this.props.options;
+		var loadding = this.props.loadding;
 		var userInfo = this.props.userInfo;
 		var changeJobType = this.props.changeJobType;
 		var changeJobTypeInput = this.props.changeJobTypeInput;
@@ -479,15 +460,19 @@ class Main extends React.Component {
 			/>)
 	  });
 	  return (
-		<div>
+		<div style={{display:'block'}}>
   
 		<div style={{float: 'left', marginTop: 15}}>
 			<button type="button" onClick={this.props.onRowAdd} className="btn btn-success" style={{marginRight: 20, marginBottom: 10, backgroundColor:'rgba(2, 184, 117, 1)'}}>
 				<FiPlusCircle size={25} color='white'/>
 			</button>
 		</div>
-		
-		  {this.props.products.length > 0 ? <table className="table table-bordered">
+			{ loadding &&
+				<div className="loading">
+					<img  src={loading} alt="loading"/>
+				</div>
+			}
+		  <table className="table table-bordered">
 			<thead>
 			  <tr>
 				<th>Stt</th>
@@ -509,10 +494,7 @@ class Main extends React.Component {
 			<tbody>
 			  {product}
 			</tbody>
-		  </table>:
-			<div style={{marginTop: 200, marginBottom: 300, width: '100%', flexDirection: 'row', display:'flex', justifyContent:'center'}}>
-				<p style={{fontSize: 18}}>No data</p>
-			</div>}
+		  </table>
 		</div>
 	  );
 	}

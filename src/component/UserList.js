@@ -6,6 +6,8 @@ import PopupInput from './PopupInput'
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import constants from '../constants'
+import loading from '../assets/loader.gif'
+
 class UserList extends Component {
 	constructor(props) {
 		super(props);
@@ -28,6 +30,7 @@ class UserList extends Component {
 			popupContent: '',
 			customizeCancelButton: '',
 			customizeOkButton: '',
+			loadding: false,
 		}
 	}
 	async componentDidMount(){
@@ -37,41 +40,35 @@ class UserList extends Component {
 		let {page, size, roles} = this.state
 		const url = constants.baseUrl + 'users?page='+page+'&size='+size
 		const urlRole = constants.baseUrl + 'users/roles'
+		this.setState({loadding: true})
 		try {
 			await setConfigAxios()
 			const response = await HttpClient.get(url)
 			const responseRole = await HttpClient.get(urlRole)
-			console.log('Response of get users:', response);
-			console.log('responseRole', responseRole);
 			if(response?.data?.content?.length > 0 && responseRole?.data) {
 				this.setState({
 					listUser: response?.data?.content,
 					isAdding: false,
 					indexEditing: -1,
-					isShowPopup: false
+					isShowPopup: false,
+					loadding: false
 				})
 			}
 		} catch (error) {
-			console.log(error);
-			
+			this.setState({loadding: false})			
 		}
 	}
 	onChangeText = (e, index) => {
 		e.preventDefault()
-		console.log('OnChangeText');
 		const {indexEditting, listUser} = this.state
 		const id = e.target.id
 		const name = e.target.name
 		const value = e.target.value
-		console.log('index:', index);
-		console.log('name:', name);
-		console.log('value:', value);
 		listUser[index][name] = value
 		this.setState({...listUser})
 		
 	}
 	onChangeActive = (e, index) => {
-		console.log(e.target.checked);
 		const checked = e.target.checked
 		const {listUser} = this.state
 		listUser[index].active = !listUser[index].active
@@ -80,13 +77,12 @@ class UserList extends Component {
 	onEdit = async (e, index) => {
 		e.preventDefault()
 		let {indexEditing, isAdding, listUser} = this.state
-		console.log('onEdit:', indexEditing);
 		
 		if(isAdding){ // trường hợp add new
 			const url = constants.baseUrl + 'users'
 			try {
+				this.setState({loadding: true})
 				const response = await HttpClient.post(url, listUser[0])
-				console.log('Response add:', response);
 				await this.fetchData()
 			} catch (error) {
 				this.setState({
@@ -94,7 +90,8 @@ class UserList extends Component {
 					showCancelButton: false,
 					customizeOkButton: 'OK',
 					popupStatus: 'addUserFail',
-					popupContent: 'Lỗi! Không thể thêm mới người dùng.'
+					popupContent: 'Lỗi! Không thể thêm mới người dùng.',
+					loadding: false,
 				})
 			}
 		} else {
@@ -144,6 +141,7 @@ class UserList extends Component {
 		const {popupStatus, indexDeleting, listUser} = this.state
 		if(popupStatus === 'delete'){
 			try {
+				this.setState({loadding: true})
 				const url = constants.baseUrl + 'users/' + listUser[indexDeleting].id
 				const deleteResponse = await HttpClient.delete(url)
 				console.log('deleteResponse:', deleteResponse);
@@ -154,7 +152,8 @@ class UserList extends Component {
 					showCancelButton: false,
 					customizeOkButton: 'OK',
 					popupStatus: 'deleteFail',
-					popupContent:'Xoá thất bại!'
+					popupContent:'Xoá thất bại!',
+					loadding: false,
 				})				
 			}
 		} else if(popupStatus === 'addUserFail' || popupStatus === 'deleteFail' || popupStatus === 'chanegPassSuccess' ) {
@@ -169,7 +168,6 @@ class UserList extends Component {
 	onContinueActionInput = async (e, value) => {
 		const {listUser, indexEditing} = this.state
 		const url = constants.baseUrl + 'users/admin/reset-password?username=' +listUser[indexEditing]?.username+'&new-password='+value
-		console.log(url);
 		this.setState({
 			isShowPopupInput: false,
 			isShowPopup: true,
@@ -180,9 +178,10 @@ class UserList extends Component {
 			customizeOkButton: 'OK'
 		})
 		try {
+			this.setState({loadding: true})
 			const response = await HttpClient.put(url)
 			console.log('Change pass response:', response);
-			
+			this.setState({loadding: false})
 		} catch (error) {
 			this.setState({
 				isShowPopup: true,
@@ -190,7 +189,8 @@ class UserList extends Component {
 				showCancelButton: false,
 				customizeOkButton: 'OK',
 				popupStatus: 'changePassFail',
-				popupContent:'Thay đổi mật khẩu không thành công!'
+				popupContent:'Thay đổi mật khẩu không thành công!',
+				loadding: false
 			})	
 		}
 	}
@@ -245,11 +245,16 @@ class UserList extends Component {
 		)
 	}
 	render(){
-		const {isAdding,listUser, isShowPopup, popupContent, popupTitle, customizeCancelButton, customizeOkButton, showCancelButton, isShowPopupInput} = this.state
+		const {loadding, isAdding,listUser, isShowPopup, popupContent, popupTitle, customizeCancelButton, customizeOkButton, showCancelButton, isShowPopupInput} = this.state
 		console.log(listUser);
 		
 		return (
 			<div style={{marginLeft: 20}}>
+				{ loadding &&
+					<div className="loading">
+						<img  src={loading} alt="loading"/>
+					</div>
+				}
 				<div style={{float: 'left', marginTop: 15}}>
 					<button type="button" onClick={this.onRowAdd} className="btn btn-success" style={{marginRight: 20, marginBottom: 10}}>Add</button>
 				</div>
