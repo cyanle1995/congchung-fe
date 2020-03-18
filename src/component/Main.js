@@ -413,7 +413,7 @@ class Main extends React.Component {
 					</div>}
 				</span>
 			</div>
-			{products.length > 0 ?<ProductTable 
+			<ProductTable 
 				onProductTableUpdate={this.handleProductTable.bind(this)} 
 				onSave = {this.onSave}
 				onCancelEdit = {this.onCancelEdit}
@@ -429,10 +429,8 @@ class Main extends React.Component {
 				changeJobType = {this.changeJobType}
 				userInfo = {userInfo}
 				changeJobTypeInput = {this.changeJobTypeInput}
-			/>:
-			<div style={{marginTop: 200, marginBottom: 300, width: '100%', flexDirection: 'row', display:'flex', justifyContent:'center'}}>
-				<p style={{fontSize: 18}}>No data</p>
-			</div>}
+			/>
+			
 			<Pagination
 				activePage={page}
 				itemsCountPerPage={10}
@@ -489,7 +487,7 @@ class Main extends React.Component {
 			</button>
 		</div>
 		
-		  <table className="table table-bordered">
+		  {this.props.products.length > 0 ? <table className="table table-bordered">
 			<thead>
 			  <tr>
 				<th>Stt</th>
@@ -511,7 +509,10 @@ class Main extends React.Component {
 			<tbody>
 			  {product}
 			</tbody>
-		  </table>
+		  </table>:
+			<div style={{marginTop: 200, marginBottom: 300, width: '100%', flexDirection: 'row', display:'flex', justifyContent:'center'}}>
+				<p style={{fontSize: 18}}>No data</p>
+			</div>}
 		</div>
 	  );
 	}
