@@ -138,6 +138,9 @@ class SoSaoY extends React.Component {
 				}
 				let {products} = this.state
 				products.splice(0,0,product)
+				if(products.length>10){
+					products.pop()
+				}
 				this.setState({
 					products,
 					isAdding: true,
@@ -342,7 +345,7 @@ class SoSaoY extends React.Component {
 		this.setState({showMenu: !this.state.showMenu})
 	}
  	render() {
-		 const {loadding, products, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding, page } = this.state
+		 const {loadding, page, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding } = this.state
 		 const url = constants.baseUrl + 'websocket'
 	  return (
 		<div style={{marginTop: 20, marginLeft: 20}}>
@@ -399,6 +402,7 @@ class SoSaoY extends React.Component {
 				filterText = {this.state.filterText}
 				indexEditting = {indexEditting}
 				options = {options}
+				page = {page}
 				loadding = {loadding}
 				isAdding = {isAdding}
 				changeJobType = {this.changeJobType}
@@ -429,6 +433,7 @@ class SoSaoY extends React.Component {
 	  var rowDel = this.props.onRowDel;
 		var options = this.props.options;
 		var loadding = this.props.loadding;
+		var page = this.props.page;
 		var userInfo = this.props.userInfo;
 		var changeJobType = this.props.changeJobType;
 		var changeJobTypeInput = this.props.changeJobTypeInput;
@@ -455,11 +460,11 @@ class SoSaoY extends React.Component {
 	  return (
 		<div>
   
-		<div style={{float: 'left', marginTop: 15}}>
+		{page ==1 &&<div style={{float: 'left', marginTop: 15}}>
 			<button type="button" onClick={this.props.onRowAdd} className="btn btn-success" style={{marginRight: 20, marginBottom: 10, backgroundColor:'rgba(2, 184, 117, 1)'}}>
 				<FiPlusCircle size={25} color='white'/>
 			</button>
-		</div>
+		</div>}
 			{ loadding &&
 					<div className="loading">
 						<img  src={loading} alt="loading"/>
@@ -475,8 +480,9 @@ class SoSaoY extends React.Component {
 				<th>Loại văn bản sao y</th>
 				<th>Lệ phí thu</th>
 				<th>CCV xác nhận</th>
-				<th>Sửa</th>
-				<th>Xoá</th>
+				{userInfo.role=='MANAGER'&&<th>Sửa</th>}
+				{userInfo.role!='MANAGER' && indexEditting == 0 &&<th>Lưu lại</th>}
+				{userInfo.role=='MANAGER'&&<th>Xoá</th>}
 			  </tr>
 			</thead>
   
@@ -510,6 +516,7 @@ class SoSaoY extends React.Component {
 		  <EditableCell onProductTableUpdate={this.props.onProductTableUpdate} cellData={{
 				type: "parties",
 				value: product.parties,
+				userInfo: userInfo,
 				id: this.props.index + '_nguoiThamGia',
 				index: this.props.index,
 				indexEditting: indexEditting
@@ -517,6 +524,7 @@ class SoSaoY extends React.Component {
 		  <EditableCell onProductTableUpdate={this.props.onProductTableUpdate} cellData={{
 				type: "quantity",
 				value: product.quantity,
+				userInfo: userInfo,
 				id: this.props.index + '_quantity',
 				index: this.props.index,
 				indexEditting: indexEditting
@@ -535,19 +543,21 @@ class SoSaoY extends React.Component {
 				type: "fee",
 				value: this.props.product.fee,
 				id: this.props.index + '_lePhiThu',
+				userInfo: userInfo,
 				index: this.props.index,
 				indexEditting: indexEditting
 		  }}/>
 		  <EditableCell onProductTableUpdate={this.props.onProductTableUpdate} cellData={{
 				type: "confirmedBy",
 				value: this.props.product.confirmedBy,
+				userInfo: userInfo,
 				id: this.props.index + '_ccvXacNhan',
 				index: this.props.index,
 				indexEditting: indexEditting
 		  }}/>
-			{indexEditting != index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? <button style={{width: 80, height: 30, backgroundColor: 'rgba(2, 184, 117, 1)', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onSave(index)}>Sửa</button> : '-'}</td>}
-			{indexEditting == index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? (<div style={{flexDirection: 'row', display:'flex', justifyContent: 'center'}}><span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'rgba(2, 184, 117, 1)', marginRight:10, cursor: 'pointer'}}  onClick= { e => this.props.onSave(index)}><FiCheck size={30} color="#ffffff"/></span> <span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'#ed5e3e', cursor: 'pointer'}}  onClick= { e => this.props.onCancelEdit(e, index)}><FiX size={30} color="#ffffff" /></span> </div>): '-'}</td>}
-			<td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN'))  ? <button style={{width: 80, height: 30, backgroundColor: '#ed5e3e', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onDelete(e, index)}>Xoá</button>: '-'}</td>
+			{userInfo.role=='MANAGER' && indexEditting != index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? <button style={{width: 80, height: 30, backgroundColor: 'rgba(2, 184, 117, 1)', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onSave(index)}>Sửa</button> : '-'}</td>}
+			{indexEditting == index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? (<div style={{flexDirection: 'row', display:'flex', justifyContent: 'center'}}><span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor: 'rgba(2, 184, 117, 1)', marginRight:10, cursor: 'pointer'}}  onClick= { e => this.props.onSave(index)}><FiCheck size={30} color="#ffffff"/></span> <span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'#ed5e3e', cursor: 'pointer'}}  onClick= { e => this.props.onCancelEdit(e, index)}><FiX size={30} color="#ffffff" /></span> </div>): '-'}</td>}
+			{userInfo.role=='MANAGER'&&<td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN'))  ? <button style={{width: 80, height: 30, backgroundColor: '#ed5e3e', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onDelete(e, index)}>Xoá</button>: '-'}</td>}
 		</tr>
 	  );
   
@@ -564,7 +574,7 @@ class SoSaoY extends React.Component {
 			size = 5
 		}
 		let type ='text'
-		if(cellData.type === 'fee') type = 'number'
+		if(cellData.type === 'fee' || cellData.type === 'quantity') type = 'number'
 	  return (
 		<td>
 			<input 
@@ -575,7 +585,7 @@ class SoSaoY extends React.Component {
 				id={cellData.id} 
 				value={cellData.value} 
 				onChange={this.props.onProductTableUpdate} 
-				disabled={cellData.type == 'identifier'}
+				disabled={cellData.type == 'identifier' || (cellData.userInfo.role!='MANAGER' && cellData.index != cellData.indexEditting )}
 			/>
 		</td>
 	  );

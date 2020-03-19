@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import '../App.css';
 import { HttpClient, setConfigAxios } from "../api/httpClient";
 import Popup from './Popup'
+import loading from '../assets/loader.gif'
 class Login extends Component {
 	constructor(props) {
 		super(props);
@@ -14,6 +15,7 @@ class Login extends Component {
 			customizeCancelButton: '',
 			customizeOkButton: '',
 			showCancelButton: false,
+			loadding: false,
 		}
 	}
 	componentDidMount(){
@@ -32,10 +34,12 @@ class Login extends Component {
 			const response = await HttpClient.post('/authenticate', user);
 			localStorage.setItem('TOKEN', response.data.token)
 			await setConfigAxios()
+			this.setState({loadding: true})
 			const responseGetMe = await HttpClient.get('/users/me');
 			localStorage.setItem('USER_INFO', JSON.stringify(responseGetMe.data))
 			console.log('responseGetMe:', responseGetMe);
 			console.log('Response is:', response);
+			this.setState({loadding: false})
 			this.props.history.push('/department')
 		} catch (error) {
 			console.log('Login fail:', error.response);
@@ -44,7 +48,8 @@ class Login extends Component {
 					isShowPopup: true,
 					popupContent: 'Username hoặc Password không đúng!',
 					showCancelButton: false,
-					customizeOkButton: 'OK'
+					customizeOkButton: 'OK',
+					loadding: false
 				})
 			}
 		}
@@ -71,9 +76,14 @@ class Login extends Component {
 	}
 	render(){
 		
-		const {username, password, customizeCancelButton, customizeOkButton, showCancelButton, popupContent, popupTitle, isShowPopup} = this.state
+		const {loadding, username, password, customizeCancelButton, customizeOkButton, showCancelButton, popupContent, popupTitle, isShowPopup} = this.state
 		return (
 			<div className="App" style={{padding: 100, justifyContent: 'center', alignItems:'center'}}>
+				{ loadding &&
+				<div className="loading">
+					<img  src={loading} alt="loading"/>
+				</div>
+				}
 				<div className="borderLogin" style={{width: '60%', paddingBottom:60, paddingTop:60, justifyContent: 'center', alignItems:'center', display: 'inline-table'}}>
 					<h3 style={{marginBottom: 40, fontSize: 35, fontWeight: '500'}}>Đăng nhập</h3>
 					<div className="form-group" style={{flexDirection:'row', display:'flex', justifyContent:'center', alignItems:'center'}}>

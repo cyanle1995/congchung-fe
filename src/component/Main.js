@@ -136,6 +136,9 @@ class Main extends React.Component {
 				}
 				let {products} = this.state
 				products.splice(0,0,product)
+				if(products.length>10){
+					products.pop()
+				}
 				this.setState({
 					products,
 					isAdding: true,
@@ -345,7 +348,7 @@ class Main extends React.Component {
 		this.setState({...products})
 	}
  	render() {
-		 const {loadding, products, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding, page } = this.state
+		 const {loadding, products, page, showMenu, branchId, branch, popupTitle, popupContent, customizeCancelButton, customizeOkButton, isShowPopup, indexEditting, options, showCancelButton, userInfo, isAdding } = this.state
 		 const url = constants.baseUrl + 'websocket'
 		 
 	  return (
@@ -401,6 +404,7 @@ class Main extends React.Component {
 				onRowAdd = {this.handleAddEvent.bind(this)} 
 				onRowDel = {this.handleRowDel.bind(this)} 
 				products = {products} 
+				page = {page} 
 				loadding = {loadding}
 				filterText = {this.state.filterText}
 				indexEditting = {indexEditting}
@@ -430,6 +434,7 @@ class Main extends React.Component {
 	  var onSave = this.props.onSave;
 	  var onCancelEdit = this.props.onCancelEdit;
 	  var onDelete = this.props.onDelete;
+	  var page = this.props.page;
 	  var isAdding = this.props.isAdding;
 	  var rowDel = this.props.onRowDel;
 	  var onChangeActive = this.props.onChangeActive;
@@ -462,11 +467,11 @@ class Main extends React.Component {
 	  return (
 		<div style={{display:'block'}}>
   
-		<div style={{float: 'left', marginTop: 15}}>
+		{page == 1 &&<div style={{float: 'left', marginTop: 15}}>
 			<button type="button" onClick={this.props.onRowAdd} className="btn btn-success" style={{marginRight: 20, marginBottom: 10, backgroundColor:'rgba(2, 184, 117, 1)'}}>
 				<FiPlusCircle size={25} color='white'/>
 			</button>
-		</div>
+		</div>}
 			{ loadding &&
 				<div className="loading">
 					<img  src={loading} alt="loading"/>
@@ -486,8 +491,9 @@ class Main extends React.Component {
 				<th>Ghi chú</th>
 				<th>Thanh toán</th>
 				{/* {userInfo?.role === 'MANAGER' && <th>Thanh toán</th>} */}
-				<th>Sửa</th>
-				<th>Xoá</th>
+				{userInfo.role=='MANAGER'&&<th>Sửa</th>}
+				{userInfo.role!='MANAGER' && indexEditting == 0 &&<th>Lưu lại</th>}
+				{userInfo.role=='MANAGER'&&<th>Xoá</th>}
 			  </tr>
 			</thead>
   
@@ -523,11 +529,13 @@ class Main extends React.Component {
 				value: product.parties,
 				id: this.props.index + '_nguoiThamGia',
 				index: this.props.index,
+				userInfo: userInfo,
 				indexEditting: indexEditting
 		  }}/>
 		  <EditableCell onProductTableUpdate={this.props.onProductTableUpdate} cellData={{
 				type: "preparedBy",
 				value: product.preparedBy,
+				userInfo: userInfo,
 				id: this.props.index + '_nguoiLam',
 				index: this.props.index,
 				indexEditting: indexEditting
@@ -547,6 +555,7 @@ class Main extends React.Component {
 				type: "fee",
 				value: this.props.product.fee,
 				id: this.props.index + '_lePhiThu',
+				userInfo: userInfo,
 				index: this.props.index,
 				indexEditting: indexEditting
 		  }}/>
@@ -555,6 +564,7 @@ class Main extends React.Component {
 				value: this.props.product.commission,
 				id: this.props.index + '_khoanTrich',
 				index: this.props.index,
+				userInfo: userInfo,
 				indexEditting: indexEditting
 		  }}/>
 		  <EditableCell onProductTableUpdate={this.props.onProductTableUpdate} cellData={{
@@ -562,20 +572,22 @@ class Main extends React.Component {
 				value: this.props.product.confirmedBy,
 				id: this.props.index + '_ccvXacNhan',
 				index: this.props.index,
+				userInfo: userInfo,
 				indexEditting: indexEditting
 		  }}/>
 		  <EditableCell onProductTableUpdate={this.props.onProductTableUpdate} cellData={{
 				type: "note",
 				value: this.props.product.note,
 				id: this.props.index + '_ghiChu',
+				userInfo: userInfo,
 				index: this.props.index,
 				indexEditting: indexEditting
 		  }}/>
 			<td><input type="checkbox" value ={product.paid} checked = {product.paid} data-toggle="toggle" data-size="xs" onClick={e => this.props.onChangeActive(e, index)}/></td>
-			{indexEditting != index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? <button style={{width: 80, height: 30, backgroundColor: 'rgba(2, 184, 117, 1)', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onSave(index)}>Sửa</button> : '-'}</td>}
+			{userInfo.role=='MANAGER' && indexEditting != index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? <button style={{width: 80, height: 30, backgroundColor: 'rgba(2, 184, 117, 1)', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onSave(index)}>Sửa</button> : '-'}</td>}
 			{indexEditting == index && <td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN')) ? (<div style={{flexDirection: 'row', display:'flex', justifyContent: 'center'}}><span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor: 'rgba(2, 184, 117, 1)', marginRight:10, cursor: 'pointer'}}  onClick= { e => this.props.onSave(index)}><FiCheck size={30} color="#ffffff"/></span> <span style={{width: 30, height: 30, display:'flex', borderRadius:5, backgroundColor:'#ed5e3e', cursor: 'pointer'}}  onClick= { e => this.props.onCancelEdit(e, index)}><FiX size={30} color="#ffffff" /></span> </div>): '-'}</td>}
-			<td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN'))  ? <button style={{width: 80, height: 30, backgroundColor: '#ed5e3e', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onDelete(e, index)}>Xoá</button>: '-'}</td>
-		</tr>
+			{userInfo.role=='MANAGER'&&<td style={{textAlign: 'center'}}>{ (userInfo?.username == product?.createdBy || (isAdding && index == 0) || (userInfo?.role === 'MANAGER' || userInfo?.role === 'SYS_ADMIN'))  ? <button style={{width: 80, height: 30, backgroundColor: '#ed5e3e', borderRadius: 10, fontWeight:'bold'}} onClick= { e => this.props.onDelete(e, index)}>Xoá</button>: '-'}</td>}
+		</tr>	
 	  );
   
 	}
@@ -602,7 +614,7 @@ class Main extends React.Component {
 				id={cellData.id} 
 				value={cellData.value} 
 				onChange={this.props.onProductTableUpdate} 
-				disabled={cellData.type == 'identifier'}
+				disabled={cellData.type == 'identifier' || (cellData.userInfo.role!='MANAGER' && cellData.index != cellData.indexEditting )}
 			/>
 		</td>
 	  );
