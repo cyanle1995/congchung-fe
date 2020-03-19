@@ -296,7 +296,7 @@ class Main extends React.Component {
 			} catch (error) {
 				await this.fetchData()
 			}
-		} else if(popupStatus === 'saveEdittingRecord') {
+		} else if(popupStatus === 'saveEdittingRecord' || popupStatus ==='saveToAdd') {
 			await this.onSave(this.state.indexEditting)
 		}
 		this.setState({
@@ -602,7 +602,7 @@ class Main extends React.Component {
 				id={cellData.id} 
 				value={cellData.value} 
 				onChange={this.props.onProductTableUpdate} 
-				disabled={cellData.index != cellData.indexEditting || cellData.type == 'identifier'}
+				disabled={cellData.type == 'identifier'}
 			/>
 		</td>
 	  );
